@@ -39,10 +39,30 @@ def check_id_data_validate(df: pd.DataFrame) -> bool:
 
 
 
+
+
 def run_spotify_etl():
     DATABASE_LOCATION = "sqlite:///my_played_tracks.sqlite"
     USER_ID = "Sztaber"
-    TOKEN = "BQBqEDo984gI2OOPHwZJKgeX7C7_-wxFBZdwAbwLaqca6F2HtPf4OzGPRJs2ESo3BQsrwxHV-XsddHNh8UTw2GB6JbdDBGZM9WeiccSFCwVoyxdc9aA32yZoERcQwq5RS9SPX8joGUTa8-IeoE9RKxsXa4yrtzLW39c_9lfX"
+    TOKEN = ""
+    refresh_token = "AQCsEoIbHB6oCxomDoo-sFyXl67sKoUw_N--E-uwEZmmFXrFw7oAUwz10vE_2lDLMh1CHajxCR2U0G5BeCxTxtaaRygHppcUTbDrqSdPrvH-Z6Lc2ZZIAJnKFXyyU2hckco"
+    base_64 = "NTI1YmUyNzg2Y2ViNDFhZjljNDcwMDJlZjBkODhhMzk6MzIwYTk3ZGMzNzg1NDZmNjkwYWUzYzI5ZjE4ZjlmODA="
+
+    # Refreshing the Token
+    query = "https://accounts.spotify.com/api/token"
+
+    response = requests.post(query,
+                                 data={"grant_type": "refresh_token",
+                                       "refresh_token": refresh_token},
+                                 headers={"Authorization": "Basic " + base_64})
+
+    response_json = response.json()
+
+    print(response_json)
+
+    TOKEN = response_json["access_token"]
+
+    print("Token has been refreshed")
     # Extract part of the ETL process
  
     headers = {
@@ -53,15 +73,20 @@ def run_spotify_etl():
     
     # Convert time to Unix timestamp in miliseconds      
     today = datetime.datetime.now()
-    yesterday = today - datetime.timedelta(days=1)
-    yesterday_unix_timestamp = int(yesterday.timestamp()) * 1000
+    time_range = today - datetime.timedelta(days=5)
+    time_range_unix_timestamp = int(time_range.timestamp()) * 1000
     # today_unix_timestamp = int(today.timestamp()) * 1000
 
     # Download all songs you've listened to "after yesterday", which means in the last 24 hours      
-    r = requests.get("https://api.spotify.com/v1/me/player/recently-played?after={time}".format(time=yesterday_unix_timestamp), headers = headers)
+    r = requests.get("https://api.spotify.com/v1/me/player/recently-played?after={time}".format(time=time_range_unix_timestamp), headers = headers)
 
+
+    
 
     data = r.json()
+
+
+    
 
   
 
@@ -122,5 +147,15 @@ def run_spotify_etl():
     except:
         print("Data already exists in the database")
 
+    
     conn.close()
     print("Close database successfully")
+
+
+
+
+
+
+
+
+run_spotify_etl()
