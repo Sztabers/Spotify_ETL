@@ -13,7 +13,35 @@ DB_LOCATION = "sqlite:///my_played_tracks.sqlite"
 USER_ID = "Sztaber"
 TOKEN = 'BQC2BaRBT6d4rH0NIh-SN2H6wz12g-7pmV1PGYVRrMtuAjYgsQzHu57ZjnUK-KaQw-hn6G0i7rPhoLlHrn17Mv_LB2zF-H7V0VcKvFhn1mePXDm-Yi07hDgncORDzzjMZg5bacqmwB9Ko3MXdDrUrJ-bVA2nJzXg94GbR5H2'
 
+# Create function for validate the data
+
+def check_if_valid_data (df: pd.DataFrame) -> bool:
+    if df.empty:
+        print("No songs downloaded. Finishing execution.")
+        return False
+    elif pd.Series(df('played_at')).is_unique:
+        pass
+    else:
+        raise Exception('Primary key check is violated')
+
+    if df.isnull().values.any():
+        raise Exception('Null values Found')
+
+    properTime = datetime.datetime.now() - datetime.timedelta(days=30)
+    properTime = properTime.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    timestamps = df['timestamps'].toList()
+
+    for timestamp in timestamps:
+        if datetime.datetime.strptime(timestamp, "%Y-%m-%d") != properTime:
+            raise Exception ('At least one song does not have proper timestamp')
+
+    return True
+
 if __name__ == '__main__':
+
+
+
 
 #Extract the data from Spotify API
 
